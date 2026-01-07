@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multimedia Exercise</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 20px auto; line-height: 1.6; }
+        .media-container { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; background: #f9f9f9; }
+        .timer { font-weight: bold; color: #007bff; margin-top: 10px; }
+        video { width: 100%; max-width: 600px; height: auto; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>HTML5 Multimedia Player</h1>
+
+    <div class="media-container">
+        Audio Player
+        <audio id="myAudio" controls>
+            <source src="your-audio-file.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <div class="timer">Current Time: <span id="audioTime">0:00</span></div>
+    </div>
+
+    <div class="media-container">
+        Video Player
+        <video id="myVideo" controls>
+            <source src="your-video-file.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="timer">Current Time: <span id="videoTime">0:00</span></div>
+    </div>
+
+    <script>
+        // Function to update the time display
+        function updateTimer(mediaElement, displayElement) {
+            mediaElement.addEventListener('timeupdate', () => {
+                const minutes = Math.floor(mediaElement.currentTime / 60);
+                const seconds = Math.floor(mediaElement.currentTime % 60);
+                const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                displayElement.innerText = formattedTime;
+            });
+        }
+
+        // Initialize timers
+        const audio = document.getElementById('myAudio');
+        const audioDisplay = document.getElementById('audioTime');
+        const video = document.getElementById('myVideo');
+        const videoDisplay = document.getElementById('videoTime');
+
+        updateTimer(audio, audioDisplay);
+        updateTimer(video, videoDisplay);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --dark: #2c3e50;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; padding: 40px; color: var(--dark); }
+        .container { max-width: 900px; margin: auto; }
+        
+        /* Form Styling */
+        .form-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-submit { background: var(--primary); color: white; width: 100%; }
+        .btn-submit:hover { background: #357abd; }
+        .btn-clear { background: var(--danger); color: white; margin-bottom: 15px; }
+        .btn-delete { background: var(--danger); color: white; padding: 5px 10px; font-size: 12px; }
+
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--dark); color: white; }
+        tr:hover { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-card">
+        <h2>User Registration</h2>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" id="mobile" placeholder="10-digit number" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Min 6 characters" required>
+            </div>
+            <button type="submit" class="btn btn-submit">Register User</button>
+        </form>
+    </div>
+
+    <div class="management-section">
+        <h2>Registered Users</h2>
+        <button class="btn btn-clear" onclick="clearAll()">Clear All Users</button>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userList">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('registrationForm');
+    const userList = document.getElementById('userList');
+
+    // Load users on startup
+    document.addEventListener('DOMContentLoaded', displayUsers);
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const mobile = document.getElementById('mobile').value;
+        const password = document.getElementById('password').value;
+
+        // 1. Validations
+        if (mobile.length !== 10 || isNaN(mobile)) {
+            alert("Mobile number must be exactly 10 digits.");
+            return;
+        }
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters long.");
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        // 2. Duplicate Check
+        const exists = users.some(user => user.email === email);
+        if (exists) {
+            alert("User with this email already exists!");
+            return;
+        }
+
+        // 3. Store Object
+        const newUser = { name, email, mobile, password };
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        form.reset();
+        displayUsers();
+    });
+
+    function displayUsers() {
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        userList.innerHTML = '';
+
+        users.forEach((user, index) => {
+            const row = `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.mobile}</td>
+                    <td><button class="btn btn-delete" onclick="deleteUser(${index})">Delete</button></td>
+                </tr>
+            `;
+            userList.innerHTML += row;
+        });
+    }
+
+    function deleteUser(index) {
+        let users = JSON.parse(localStorage.getItem('users'));
+        users.splice(index, 1);
+        localStorage.setItem('users', JSON.stringify(users));
+        displayUsers();
+    }
+
+    function clearAll() {
+        if (confirm("Are you sure you want to delete all users?")) {
+            localStorage.removeItem('users');
+            displayUsers();
+        }
+    }
+</script>
+
+</body>
+</html>

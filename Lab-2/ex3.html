@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Kanban Task Board</title>
+    <style>
+        :root {
+            --todo-bg: #ebedf0;
+            --progress-gradient: linear-gradient(180deg, #fff9e6 0%, #ffecb3 100%);
+            --completed-bg: #d4edda;
+            --primary-green: #28a745;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { color: #333; }
+
+        /* Input Area */
+        .controls {
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { background-color: #218838; }
+
+        /* Board Layout */
+        .board {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1100px;
+            align-items: flex-start;
+        }
+
+        .column {
+            flex: 1;
+            background-color: var(--todo-bg);
+            border-radius: 10px;
+            min-height: 500px;
+            padding: 15px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* Specific Yellow Gradient for In Progress */
+        #inprogress {
+            background: var(--progress-gradient);
+            border: 1px solid #ffe082;
+        }
+
+        .column h3 {
+            text-align: center;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0,0,0,0.05);
+            padding-bottom: 10px;
+        }
+
+        /* Task Card Styling */
+        .task-card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .task-card:active { cursor: grabbing; }
+
+        .task-name {
+            display: block;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .task-date {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        /* State Styles */
+        .completed-card {
+            background-color: var(--completed-bg) !important;
+            border: 1px solid #c3e6cb;
+        }
+
+        .success-msg {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #155724;
+            font-weight: bold;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Project Task Board</h1>
+
+    <div class="controls">
+        <input type="text" id="taskInput" placeholder="Enter new task name...">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div class="board">
+        <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h3>To Do</h3>
+        </div>
+
+        <div class="column" id="inprogress" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h3>In Progress</h3>
+        </div>
+
+        <div class="column" id="completed" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h3>Completed</h3>
+        </div>
+    </div>
+
+    <script>
+        let cardId = 0;
+
+        // Allow element to be dropped
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        // Store data of the card being dragged
+        function drag(ev) {
+            ev.dataTransfer.setData("textId", ev.target.id);
+        }
+
+        // Handle the drop event
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("textId");
+            const draggedElement = document.getElementById(data);
+            const dropzone = ev.target.closest('.column');
+
+            if (dropzone) {
+                dropzone.appendChild(draggedElement);
+                updateCardState(draggedElement, dropzone.id);
+            }
+        }
+
+        // Apply specific styles/messages based on column
+        function updateCardState(card, columnId) {
+            // Reset states
+            card.classList.remove('completed-card');
+            const oldMsg = card.querySelector('.success-msg');
+            if (oldMsg) oldMsg.remove();
+
+            // Apply "Completed" logic
+            if (columnId === 'completed') {
+                card.classList.add('completed-card');
+                const msg = document.createElement('span');
+                msg.className = 'success-msg';
+                msg.innerText = '✓ Task Completed Successfully';
+                card.appendChild(msg);
+            }
+        }
+
+        // Create a new task dynamically
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const taskValue = input.value.trim();
+
+            if (taskValue === "") {
+                alert("Please enter a task name.");
+                return;
+            }
+
+            // Create Card Container
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.draggable = true;
+            card.id = 'card-' + cardId++;
+            card.ondragstart = drag;
+
+            // Task Name
+            const name = document.createElement('span');
+            name.className = 'task-name';
+            name.innerText = taskValue;
+
+            // Current Date
+            const date = document.createElement('span');
+            date.className = 'task-date';
+            const now = new Date();
+            date.innerText = 'Created: ' + now.toLocaleDateString();
+
+            // Assemble and Append
+            card.appendChild(name);
+            card.appendChild(date);
+            document.getElementById('todo').appendChild(card);
+
+            // Reset input
+            input.value = "";
+        }
+    </script>
+</body>
+</html>
