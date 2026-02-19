@@ -1,0 +1,7 @@
+[
+  { "id": 1, "name": "Wireless Mouse", "price": 25.99, "category": "Electronics" },
+  { "id": 2, "name": "Mechanical Keyboard", "price": 89.00, "category": "Electronics" },
+  { "id": 3, "name": "Coffee Mug", "price": 12.50, "category": "Home Decor" },
+  { "id": 4, "name": "Leather Notebook", "price": 18.00, "category": "Stationery" },
+  { "id": 5, "name": "Bluetooth Speaker", "price": 45.00, "category": "Electronics" }
+]

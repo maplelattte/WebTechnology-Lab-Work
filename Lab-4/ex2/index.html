@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Product Search</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; }
+        #searchQuery { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; }
+        #results { margin-top: 20px; }
+        .product-card { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .product-card h3 { margin: 0; color: #333; }
+        .category { color: #666; font-size: 0.85em; text-transform: uppercase; }
+        .price { color: #2ecc71; font-weight: bold; }
+        .status-msg { font-style: italic; color: #888; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Product Search</h2>
+    <input type="text" id="searchQuery" placeholder="Search by name or category...">
+    
+    <div id="results">
+        <p class="status-msg">Start typing to see products...</p>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchQuery');
+        const resultsContainer = document.getElementById('results');
+        let debounceTimer;
+
+        // 1. Debounce Logic: Delays execution until user stops typing
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = searchInput.value.trim().toLowerCase();
+            
+            if (query.length === 0) {
+                resultsContainer.innerHTML = '<p class="status-msg">Start typing to see products...</p>';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetchProducts(query);
+            }, 300); // 300ms delay
+        });
+
+        // 2. Fetch and Filter Logic
+        async function fetchProducts(query) {
+            resultsContainer.innerHTML = '<p class="status-msg">Searching...</p>';
+
+            try {
+                const response = await fetch('products.json');
+                if (!response.ok) throw new Error("Failed to load products");
+                
+                const products = await response.json();
+                
+                // Filter products based on query (Name or Category)
+                const filtered = products.filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    p.category.toLowerCase().includes(query)
+                );
+
+                displayResults(filtered);
+            } catch (error) {
+                resultsContainer.innerHTML = `<p class="status-msg" style="color:red">Error: ${error.message}</p>`;
+            }
+        }
+
+        // 3. Dynamic DOM Manipulation
+        function displayResults(matches) {
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = '<p class="status-msg">No results found.</p>';
+                return;
+            }
+
+            resultsContainer.innerHTML = matches.map(product => `
+                <div class="product-card">
+                    <span class="category">${product.category}</span>
+                    <h3>${product.name}</h3>
+                    <p class="price">$${product.price.toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
