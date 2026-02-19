@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Inventory System</title>
+    <style>
+        body { font-family: sans-serif; margin: 30px; background: #f0f2f5; }
+        .dashboard { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #334155; color: white; }
+        
+        /* Conditional Formatting */
+        .low-stock { background-color: #fee2e2; color: #dc2626; font-weight: bold; }
+        .summary-banner { background: #3b82f6; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 1.2em; }
+        
+        .btn { padding: 6px 10px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-add { background: #10b981; color: white; width: 100%; margin-top: 10px; }
+        .btn-del { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="summary-banner">
+        Total Inventory Value: $<span id="totalValue">0</span>
+    </div>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Manage Product</h3>
+            <input type="text" id="pId" placeholder="Product ID">
+            <input type="text" id="pName" placeholder="Product Name">
+            <select id="pCat">
+                <option value="Electronics">Electronics</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Stationery">Stationery</option>
+            </select>
+            <input type="number" id="pPrice" placeholder="Price">
+            <input type="number" id="pStock" placeholder="Stock Quantity">
+            <button onclick="saveProduct()" id="saveBtn" class="btn btn-add">Add Product</button>
+            
+            <hr>
+            <h3>Filter</h3>
+            <select id="filterCat" onchange="renderTable()">
+                <option value="All">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Stationery">Stationery</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <table id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let inventory = [];
+        let editId = null;
+
+        // Fetch Data
+        async function loadInventory() {
+            try {
+                const response = await fetch('inventory.json');
+                if (!response.ok) throw new Error("File not found");
+                inventory = await response.json();
+                renderTable();
+            } catch (err) {
+                console.error("Error loading data:", err);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const filter = document.getElementById('filterCat').value;
+            let total = 0;
+            
+            tbody.innerHTML = "";
+
+            inventory.forEach((item, index) => {
+                // Category Search/Filter Logic
+                if (filter !== "All" && item.category !== filter) return;
+
+                // Conditional Formatting for Low Stock (Requirement: < 5 units)
+                const stockClass = item.stock < 5 ? 'low-stock' : '';
+                
+                // Calculate Total Value (Price * Stock)
+                total += (item.price * item.stock);
+
+                tbody.innerHTML += `
+                    <tr class="${stockClass}">
+                        <td>${item.id}</td>
+                        <td>${item.name}</td>
+                        <td>${item.category}</td>
+                        <td>$${item.price}</td>
+                        <td>${item.stock} ${item.stock < 5 ? '(Low!)' : ''}</td>
+                        <td>
+                            <button class="btn" onclick="editProduct('${item.id}')">Edit</button>
+                            <button class="btn btn-del" onclick="deleteProduct('${item.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalValue').textContent = total.toLocaleString();
+        }
+
+        function saveProduct() {
+            const id = document.getElementById('pId').value;
+            const name = document.getElementById('pName').value;
+            const cat = document.getElementById('pCat').value;
+            const price = parseFloat(document.getElementById('pPrice').value);
+            const stock = parseInt(document.getElementById('pStock').value);
+
+            // Validation (Requirement: Error handling for invalid data)
+            if (!id || !name || isNaN(price) || isNaN(stock)) {
+                alert("Please enter valid numeric data for price and stock.");
+                return;
+            }
+
+            if (editId) {
+                const idx = inventory.findIndex(p => p.id === editId);
+                inventory[idx] = { id, name, category: cat, price, stock };
+                editId = null;
+                document.getElementById('saveBtn').textContent = "Add Product";
+            } else {
+                inventory.push({ id, name, category: cat, price, stock });
+            }
+
+            resetForm();
+            renderTable();
+        }
+
+        function editProduct(id) {
+            const p = inventory.find(item => item.id === id);
+            document.getElementById('pId').value = p.id;
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pCat').value = p.category;
+            document.getElementById('pPrice').value = p.price;
+            document.getElementById('pStock').value = p.stock;
+            editId = id;
+            document.getElementById('saveBtn').textContent = "Update Product";
+        }
+
+        function deleteProduct(id) {
+            inventory = inventory.filter(p => p.id !== id);
+            renderTable();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input').forEach(i => i.value = "");
+        }
+
+        loadInventory();
+    </script>
+</body>
+</html>

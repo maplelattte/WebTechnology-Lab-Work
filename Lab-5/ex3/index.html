@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Record System (JSON CRUD)</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 30px; background-color: #f8fafc; }
+        .container { max-width: 900px; margin: auto; }
+        .form-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #6366f1; color: white; }
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: 500; }
+        .btn-add { background: #4f46e5; color: white; margin-top: 15px; width: 100%; }
+        .btn-edit { background: #eab308; color: white; margin-right: 5px; }
+        .btn-delete { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Record System</h2>
+
+    <div class="form-card">
+        <div class="grid-inputs">
+            <input type="text" id="stuId" placeholder="Student ID">
+            <input type="text" id="stuName" placeholder="Full Name">
+            <input type="text" id="stuCourse" placeholder="Course">
+            <input type="number" id="stuMarks" placeholder="Marks">
+        </div>
+        <button onclick="handleFormSubmit()" id="mainBtn" class="btn btn-add">Add Student</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th><th>Course</th><th>Marks</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    let students = []; // Global state for CRUD
+    let editModeId = null; // Tracks if we are updating
+
+    // INITIAL READ: Retrieve JSON
+    async function loadData() {
+        try {
+            const response = await fetch('students.json');
+            if (!response.ok) throw new Error("Failed to load JSON file.");
+            
+            // Requirement: Parse using response.json()
+            students = await response.json();
+            renderTable();
+        } catch (error) {
+            alert("JSON Error: " + error.message);
+        }
+    }
+
+    // CREATE & UPDATE HANDLER
+    function handleFormSubmit() {
+        const id = document.getElementById('stuId').value.trim();
+        const name = document.getElementById('stuName').value.trim();
+        const course = document.getElementById('stuCourse').value.trim();
+        const marks = document.getElementById('stuMarks').value;
+
+        // Requirement: Validate fields
+        if (!id || !name || !course || !marks) {
+            alert("All fields are required!");
+            return;
+        }
+
+        if (editModeId) {
+            // UPDATE logic
+            const index = students.findIndex(s => s.id === editModeId);
+            students[index] = { id, name, course, marks: parseInt(marks) };
+            editModeId = null;
+            document.getElementById('mainBtn').textContent = "Add Student";
+            document.getElementById('stuId').disabled = false;
+        } else {
+            // CREATE logic
+            if (students.some(s => s.id === id)) {
+                alert("ID already exists!");
+                return;
+            }
+            students.push({ id, name, course, marks: parseInt(marks) });
+        }
+
+        clearForm();
+        renderTable(); // Update UI dynamically
+    }
+
+    // READ: Display logic
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = students.map(s => `
+            <tr>
+                <td>${s.id}</td>
+                <td>${s.name}</td>
+                <td>${s.course}</td>
+                <td>${s.marks}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="prepareUpdate('${s.id}')">Edit</button>
+                    <button class="btn btn-delete" onclick="deleteStudent('${s.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // DELETE logic
+    function deleteStudent(id) {
+        if (confirm("Remove this record?")) {
+            students = students.filter(s => s.id !== id);
+            renderTable();
+        }
+    }
+
+    // Prepare UI for UPDATE
+    function prepareUpdate(id) {
+        const s = students.find(stu => stu.id === id);
+        document.getElementById('stuId').value = s.id;
+        document.getElementById('stuId').disabled = true; // ID shouldn't change
+        document.getElementById('stuName').value = s.name;
+        document.getElementById('stuCourse').value = s.course;
+        document.getElementById('stuMarks').value = s.marks;
+        
+        editModeId = id;
+        document.getElementById('mainBtn').textContent = "Update Student";
+    }
+
+    function clearForm() {
+        document.getElementById('stuId').value = "";
+        document.getElementById('stuName').value = "";
+        document.getElementById('stuCourse').value = "";
+        document.getElementById('stuMarks').value = "";
+    }
+
+    loadData();
+</script>
+</body>
+</html>

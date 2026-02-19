@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee XML Management</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background: #f9f9f9; }
+        .container { display: flex; gap: 20px; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 280px; }
+        input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
+        table { border-collapse: collapse; width: 100%; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #4a5568; color: white; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .btn-del { background: #e53e3e; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h2>Employee Management (XML AJAX)</h2>
+    <p id="statusMsg"></p>
+
+    <div class="container">
+        <form id="empForm">
+            <input type="text" id="empId" placeholder="Employee ID" required>
+            <input type="text" id="empName" placeholder="Full Name" required>
+            <input type="text" id="empDept" placeholder="Department" required>
+            <input type="number" id="empSalary" placeholder="Salary" required>
+            <button type="submit" style="width:100%; padding:10px; cursor:pointer">Add Employee</button>
+        </form>
+
+        <table id="empTable">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Name</th><th>Dept</th><th>Salary</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let xmlDoc = null;
+        const statusMsg = document.getElementById('statusMsg');
+
+        // Initial Load: Fetching the XML
+        function loadEmployees() {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "employees.xml", true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    xmlDoc = xhr.responseXML;
+                    if (!xmlDoc || xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                        showStatus("Error: Malformed XML file", "error");
+                        return;
+                    }
+                    displayEmployees();
+                } else {
+                    showStatus("Error: Could not load XML file", "error");
+                }
+            };
+            xhr.send();
+        }
+
+        // READ: Displaying data from xmlDoc
+        function displayEmployees() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = "";
+            const employees = xmlDoc.getElementsByTagName("employee");
+
+            if (employees.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5'>No records found.</td></tr>";
+                return;
+            }
+
+            for (let i = 0; i < employees.length; i++) {
+                const id = employees[i].getElementsByTagName("id")[0].childNodes[0].nodeValue;
+                const name = employees[i].getElementsByTagName("name")[0].childNodes[0].nodeValue;
+                const dept = employees[i].getElementsByTagName("dept")[0].childNodes[0].nodeValue;
+                const salary = employees[i].getElementsByTagName("salary")[0].childNodes[0].nodeValue;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${id}</td>
+                        <td>${name}</td>
+                        <td>${dept}</td>
+                        <td>$${salary}</td>
+                        <td><button class="btn-del" onclick="deleteEmployee('${id}')">Delete</button></td>
+                    </tr>`;
+            }
+        }
+
+        // CREATE: Adding a node to the XML Document
+        document.getElementById('empForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('empId').value;
+            const name = document.getElementById('empName').value;
+            const dept = document.getElementById('empDept').value;
+            const salary = document.getElementById('empSalary').value;
+
+            const newEmp = xmlDoc.createElement("employee");
+            
+            const idNode = xmlDoc.createElement("id");
+            idNode.appendChild(xmlDoc.createTextNode(id));
+            newEmp.appendChild(idNode);
+
+            const nameNode = xmlDoc.createElement("name");
+            nameNode.appendChild(xmlDoc.createTextNode(name));
+            newEmp.appendChild(nameNode);
+
+            const deptNode = xmlDoc.createElement("dept");
+            deptNode.appendChild(xmlDoc.createTextNode(dept));
+            newEmp.appendChild(deptNode);
+
+            const salaryNode = xmlDoc.createElement("salary");
+            salaryNode.appendChild(xmlDoc.createTextNode(salary));
+            newEmp.appendChild(salaryNode);
+
+            xmlDoc.documentElement.appendChild(newEmp);
+            
+            displayEmployees();
+            showStatus("Employee added to memory successfully!", "success");
+            this.reset();
+        });
+
+        // DELETE: Removing a node
+        function deleteEmployee(id) {
+            const employees = xmlDoc.getElementsByTagName("employee");
+            for (let i = 0; i < employees.length; i++) {
+                if (employees[i].getElementsByTagName("id")[0].childNodes[0].nodeValue === id) {
+                    xmlDoc.documentElement.removeChild(employees[i]);
+                    break;
+                }
+            }
+            displayEmployees();
+            showStatus("Employee removed from memory.", "success");
+        }
+
+        function showStatus(text, type) {
+            statusMsg.textContent = text;
+            statusMsg.className = type;
+        }
+
+        // Start the app
+        loadEmployees();
+    </script>
+</body>
+</html>
