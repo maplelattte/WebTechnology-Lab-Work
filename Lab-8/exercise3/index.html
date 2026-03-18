@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Course Enrollment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      color: #333;
+      padding: 40px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Course Enrollment System</h2>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    class Course {
+      constructor(courseName, instructor) {
+        this.courseName = courseName;
+        this.instructor = instructor;
+      }
+      displayCourse() {
+        return `Course: ${this.courseName}, Instructor: ${this.instructor}`;
+      }
+    }
+
+    const course1 = new Course("Web Technologies", "Dr. Kumar");
+    let result = course1.displayCourse() + "\n";
+
+    const enrollCourse = new Promise((resolve, reject) => {
+      const seatsAvailable = true;
+      if (seatsAvailable) resolve("Enrollment Successful");
+      else reject("Course Full");
+    });
+
+    enrollCourse
+      .then(msg => {
+        result += msg;
+        document.getElementById("output").textContent = result;
+      })
+      .catch(err => {
+        result += err;
+        document.getElementById("output").textContent = result;
+      });
+  </script>
+</body>
+</html>
