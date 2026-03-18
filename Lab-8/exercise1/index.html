@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Marks - Lab Presentation</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      color: #2c3e50;
+      margin: 0 0 30px 0;
+      text-align: center;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 1.15rem;
+      color: #444;
+    }
+
+    .name {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 auto;
+      font-size: 1.05rem;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #ecf5ff;
+      color: #2c3e50;
+      font-weight: bold;
+      width: 40%;
+    }
+
+    td {
+      color: #34495e;
+    }
+
+    .highlight {
+      font-weight: bold;
+      color: #1e88e5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Student Marks Summary</h1>
+
+    <div class="header">
+      Student Name: <span class="name">Aviral</span><br>
+      Registration Number: <span class="regno">23BCE8366</span>
+    </div>
+
+    <table>
+      <tr>
+        <th>Subject / Detail</th>
+        <td>Marks</td>
+      </tr>
+      <tr>
+        <th>Mark 1</th>
+        <td>85</td>
+      </tr>
+      <tr>
+        <th>Mark 2</th>
+        <td>90</td>
+      </tr>
+      <tr>
+        <th>Mark 3</th>
+        <td>88</td>
+      </tr>
+      <tr>
+        <th class="highlight">Total Marks</th>
+        <td class="highlight" id="total">--</td>
+      </tr>
+      <tr>
+        <th class="highlight">Average Marks</th>
+        <td class="highlight" id="average">--</td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    const student = {
+      name: "Aviral",
+      marks: [85, 90, 88]
+    };
+
+    const calculateStats = ({ marks }) => {
+      const total = marks.reduce((sum, mark) => sum + mark, 0);
+      const average = (total / marks.length).toFixed(2);
+      return { total, average };
+    };
+
+    const { total, average } = calculateStats(student);
+
+    document.getElementById("total").textContent = total;
+    document.getElementById("average").textContent = average;
+  </script>
+
+</body>
+</html>
